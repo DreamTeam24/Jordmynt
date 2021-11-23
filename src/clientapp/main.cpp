@@ -87,8 +87,9 @@ public:
 wxIMPLEMENT_APP(MyApp);
 */
 
-#include "mainframe.h"
 #include "main.h"
+#include "gui.h"
+
 
 namespace jm {
 namespace clientapp {
@@ -98,8 +99,8 @@ bool Main::OnInit()
     if (!wxApp::OnInit())
         return false;
 
-    MainFrame* mainFrame = new MainFrame("Client app");
-    mainFrame->Show(true);
+    GUI* gui = new GUI("Client app");
+    gui->Show(true);
 
     return true;
 }

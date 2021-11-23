@@ -1,19 +1,22 @@
 ﻿add_library(
 	Crypto
 	STATIC
-	bytes.h
-	cipher.h
-	cipher.cpp
 	conversions.h
 	conversions.cpp
+	decrypter.h
+	decrypter.cpp
+	encrypter.h
+	encrypter.cpp
+	ephemeralkeypair.h
+	ephemeralkeypair.cpp
 	functions.h
 	functions.cpp
+	identitykeypair.h
+	identitykeypair.cpp
 	keyderivationfunction.h
 	keyderivationfunction.cpp
-	keypair.h
-	keypair.cpp
-	secureclientapp.h
-	secureclientapp.cpp)
+	securer.h
+	securer.cpp)
 
 set_target_properties(
 	Crypto PROPERTIES 

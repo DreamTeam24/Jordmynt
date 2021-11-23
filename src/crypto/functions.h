@@ -1,10 +1,12 @@
 #ifndef JM_CRYPTO_FUNCTIONS_H
 #define JM_CRYPTO_FUNCTIONS_H
 
-#include "bytes.h"
+#include <vector>
 
 namespace jm {
 namespace crypto {
+
+using Bytes = std::vector<unsigned char>;
 
 Bytes generateRandomBytes(Bytes::size_type nBytes);
 Bytes hash(Bytes const& data);

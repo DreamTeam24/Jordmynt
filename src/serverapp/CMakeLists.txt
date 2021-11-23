@@ -20,5 +20,5 @@ target_include_directories(
 add_custom_command(
     TARGET ServerApp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/data/libcrypto-1_1-x64.dll"
+        "${CMAKE_SOURCE_DIR}/data/libcrypto-3-x64.dll"
         $<TARGET_FILE_DIR:ServerApp>)

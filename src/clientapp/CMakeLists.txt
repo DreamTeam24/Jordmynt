@@ -2,17 +2,17 @@ add_executable(
 	ClientApp
 	WIN32 MACOSX_BUNDLE
 #	main.cpp)
-	app.h
-	app.cpp
-	id.h
+	"clientapp.h"
+	"clientapp.cpp"
+#	id.h
 	logindialog.h
 	logindialog.cpp
 	main.h
 	main.cpp
-	mainframe.h
-	mainframe.cpp
+	"gui.h"
+	"gui.cpp"
 	errorbox.h
-	errorbox.cpp)
+	errorbox.cpp "secureclient.cpp")
 
 set_target_properties(
 	ClientApp PROPERTIES
@@ -35,5 +35,5 @@ target_include_directories(
 add_custom_command(
     TARGET ClientApp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/data/libcrypto-1_1-x64.dll"
+        "${CMAKE_SOURCE_DIR}/data/libcrypto-3-x64.dll"
         $<TARGET_FILE_DIR:ClientApp>)

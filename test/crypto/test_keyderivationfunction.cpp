@@ -1,5 +1,4 @@
 #include "crypto/keyderivationfunction.h"
-#include "crypto/bytes.h"
 #include "crypto/conversions.h"
 #include <boost/test/unit_test.hpp>
 
@@ -42,16 +41,17 @@ BOOST_AUTO_TEST_CASE(KeyDerivationFunction_expandPseudoRandomKey)
     std::string pseudoRandomKeyHex{ "0cefce00d5d29fd09f5de36c86fc8e72"
                                     "99b4ad11ba4211c67063c2cc539fc4f9" };
     jm::crypto::Bytes pseudoRandomKey{ jm::crypto::convertHexStringToBytes(pseudoRandomKeyHex) };
-    std::string labelledInfoHex{ "002012746c7331332063206873207472"
-                                 "6166666963208ac51822361c59632de3"
-                                 "c6b259e5808ce52b8278a6493de2a976"
-                                 "f441abbadc8c" };
-    jm::crypto::Bytes labelledInfo{ jm::crypto::convertHexStringToBytes(labelledInfoHex) };
+    std::string labelHex{ "002012746c7331332063206873207472"
+                          "616666696320" };
+    jm::crypto::Bytes label{ jm::crypto::convertHexStringToBytes(labelHex) };
+    std::string infoHex{ "8ac51822361c59632de3c6b259e5808c"
+                         "e52b8278a6493de2a976f441abbadc8c" };
+    jm::crypto::Bytes info{ jm::crypto::convertHexStringToBytes(infoHex) };
     jm::crypto::Bytes::size_type expandedKeySize{ 32 };
     
     // Compute output
     jm::crypto::KeyDerivationFunction keyDerivationFunction{}; 
-    jm::crypto::Bytes expandedKey{ keyDerivationFunction.expandPseudoRandomKey(pseudoRandomKey, labelledInfo, expandedKeySize) };
+    jm::crypto::Bytes expandedKey{ keyDerivationFunction.expandPseudoRandomKey(pseudoRandomKey, label, info, expandedKeySize) };
     std::string expandedKeyHex{ jm::crypto::convertBytesToHexString(expandedKey) };
     
     // Expected output

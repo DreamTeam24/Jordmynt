@@ -1,9 +1,9 @@
 #ifndef JM_CLIENTAPP_MAIN_H
 #define JM_CLIENTAPP_MAIN_H
 
-#include "wx/wxprec.h"
+#include <wx/wxprec.h>
 #ifndef WX_PRECOMP
-    #include "wx/wx.h"
+    #include <wx/wx.h>
 #endif
 
 namespace jm {

@@ -1,4 +1,5 @@
 #include "conversions.h"
+
 #include "logger/logger.h"
 #include <boost/archive/iterators/binary_from_base64.hpp>
 #include <boost/archive/iterators/base64_from_binary.hpp>
@@ -66,11 +67,15 @@ std::string convertBytesToBase64String(Bytes const& bytes)
 
 Bytes convertTextStringToBytes(std::string const& textString)
 {
+    logger::DEBUG("Converting text string to bytes ..."); 
+    
     return Bytes(textString.begin(), textString.end());
 }
 
 std::string convertBytesToTextString(Bytes const& bytes)
 {
+    logger::DEBUG("Converting bytes to text string ..."); 
+    
     return std::string(bytes.begin(), bytes.end());
 }
 

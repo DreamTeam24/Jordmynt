@@ -1,38 +1,33 @@
 #ifndef JM_CLIENT_CLIENT_H
 #define JM_CLIENT_CLIENT_H
 
-#include "app.h"
-#include "crypto/bytes.h"
 #include <boost/asio.hpp>
-#include <memory>
 #include <string>
 
 namespace jm {
 namespace client {
 
+using Byte = unsigned char;
+using Bytes = std::vector<Byte>;
+
 class Client
 {
 public:
-    Client(boost::asio::io_context& ioContext,
-           std::shared_ptr<App>     app);
+    Client();
 
-    void connect(std::string const& server,
-                 std::string const& service);
+    void connect(std::string const& serverIPAddress,
+                 std::string const& serverPort);
     void disconnect();
 
-    void send();
+    Bytes getResponse(Bytes const& requestToServer);
 
 private:
-    void receiveHeader();
-    void receiveBody(crypto::Bytes::size_type bodySize);
-
-    static constexpr crypto::Bytes::size_type s_headerSize{ 2 };
-    static constexpr crypto::Bytes::size_type s_maxBodySize{ 256 * 256 }; // 256^s_headersize
+    static constexpr Byte s_delimiter{ '\n' };
     
+    boost::asio::io_context        m_ioContext; // m_resolver and m_socket depend on m_ioContext
     boost::asio::ip::tcp::resolver m_resolver;
     boost::asio::ip::tcp::socket   m_socket;
-    crypto::Bytes                  m_buffer;
-    std::shared_ptr<App>           m_app;
+    Bytes                          m_buffer;
 };
 
 } // namespace client

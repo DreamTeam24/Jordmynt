@@ -3,7 +3,7 @@
     STATIC
     app.h
     client.h
-    client.cpp)
+    client.cpp "app.cpp")
 
 set_target_properties(
     Client PROPERTIES

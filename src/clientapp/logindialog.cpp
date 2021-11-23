@@ -1,4 +1,5 @@
 #include "logindialog.h"
+#include "gui.h"
 #include "errorbox.h"
 #include <wx/statline.h>
 #include <wx/stdpaths.h>
@@ -9,61 +10,62 @@ namespace clientapp {
 
 enum
 {
-    LOGIN_BrowseUserPrivateKeyFile = 1,
-    LOGIN_BrowseBankPublicKeyFile = 2,
+    LOGIN_BrowseClientPrivateKeyFile = 1,
+    LOGIN_BrowseServerPublicKeyFile = 2,
     LOGIN_LogIn = wxID_OK,
     LOGIN_Cancel = wxID_CANCEL
 };
 
 wxBEGIN_EVENT_TABLE(LoginDialog, wxDialog)
     EVT_CLOSE(LoginDialog::handleClose)
-    EVT_BUTTON(LOGIN_BrowseUserPrivateKeyFile, LoginDialog::handleBrowseUserPrivateKeyFile)
-    EVT_BUTTON(LOGIN_BrowseBankPublicKeyFile, LoginDialog::handleBrowseBankPublicKeyFile)
+    EVT_BUTTON(LOGIN_BrowseClientPrivateKeyFile, LoginDialog::handleBrowseClientPrivateKeyFile)
+    EVT_BUTTON(LOGIN_BrowseServerPublicKeyFile, LoginDialog::handleBrowseServerPublicKeyFile)
     EVT_BUTTON(LOGIN_LogIn, LoginDialog::handleLogIn)
     EVT_BUTTON(LOGIN_Cancel, LoginDialog::handleCancel)
 wxEND_EVENT_TABLE()
 
-LoginDialog::LoginDialog(wxFrame* mainFrame) :
-    wxDialog{ mainFrame, wxID_ANY, "Log in", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE },
-    m_userAccountNumber{},
-    m_userAccountNumberLabel{ new wxStaticText(this, wxID_ANY, "My account number") },
-    m_userAccountNumberTextbox{ new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER,
-                                UserAccountNumberValidator{ &m_userAccountNumber }) },
-    m_userPassword{},
-    m_userPasswordLabel{ new wxStaticText(this, wxID_ANY, "My password") },
-    m_userPasswordTextbox{ new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD) },
-    m_userPrivateKeyFilename{},
-    m_userPrivateKeyFilenameLabel{ new wxStaticText(this, wxID_ANY, "My private key file") },
-    m_userPrivateKeyFilenameTextbox{ new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY,
-                                     NonEmptyValidator{ &m_userPrivateKeyFilename, "Invalid private key file", "Please select your private key file."})},
-    m_userPrivateKeyFilenameButton{ new wxButton(this, LOGIN_BrowseUserPrivateKeyFile, "Browse...") },
-    m_bankIPAddress{},
-    m_bankIPAddressLabel{ new wxStaticText(this, wxID_ANY, "Bank IP address or domain name") },
-    m_bankIPAddressTextbox{ new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER,
-                            NonEmptyValidator{ &m_bankIPAddress, "Invalid IP address or domain name", "Please enter the bank's IP address or domain name." }) },
-    m_bankPort{},
-    m_bankPortLabel{ new wxStaticText(this, wxID_ANY, "Bank port or service name") },
-    m_bankPortTextbox{ new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER,
-                       NonEmptyValidator{ &m_bankPort, "Invalid port or service name", "Please enter the bank's port or service name." }) },
-    m_bankPublicKeyFilename{},
-    m_bankPublicKeyFilenameLabel{ new wxStaticText(this, wxID_ANY, "Bank public key file") },
-    m_bankPublicKeyFilenameTextbox{ new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY,
-                                    NonEmptyValidator{ &m_bankPublicKeyFilename, "Invalid public key file", "Please select the bank's public key file." })},
-    m_bankPublicKeyFilenameButton{ new wxButton(this, LOGIN_BrowseBankPublicKeyFile, "Browse...") },
+LoginDialog::LoginDialog(GUI* gui) :
+    wxDialog{ gui, wxID_ANY, "Log in", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE },
+    m_gui{ gui },
+    m_clientAccountNumber{},
+    m_clientAccountNumberLabel{ new wxStaticText(this, wxID_ANY, "My account number") },
+    m_clientAccountNumberTextbox{ new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER,
+                                  ClientAccountNumberValidator{ &m_clientAccountNumber }) },
+    m_clientPassword{},
+    m_clientPasswordLabel{ new wxStaticText(this, wxID_ANY, "My password") },
+    m_clientPasswordTextbox{ new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD) },
+    m_clientPrivateKeyFilename{},
+    m_clientPrivateKeyFilenameLabel{ new wxStaticText(this, wxID_ANY, "My private key file") },
+    m_clientPrivateKeyFilenameTextbox{ new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY,
+                                       NonEmptyValidator{ &m_clientPrivateKeyFilename, "Invalid private key file", "Please select your private key file."})},
+    m_clientPrivateKeyFilenameButton{ new wxButton(this, LOGIN_BrowseClientPrivateKeyFile, "Browse...") },
+    m_serverIPAddress{},
+    m_serverIPAddressLabel{ new wxStaticText(this, wxID_ANY, "Bank IP address or domain name") },
+    m_serverIPAddressTextbox{ new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER,
+                              NonEmptyValidator{ &m_serverIPAddress, "Invalid IP address or domain name", "Please enter the bank's IP address or domain name." }) },
+    m_serverPort{},
+    m_serverPortLabel{ new wxStaticText(this, wxID_ANY, "Bank port or service name") },
+    m_serverPortTextbox{ new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER,
+                         NonEmptyValidator{ &m_serverPort, "Invalid port or service name", "Please enter the bank's port or service name." }) },
+    m_serverPublicKeyFilename{},
+    m_serverPublicKeyFilenameLabel{ new wxStaticText(this, wxID_ANY, "Bank public key file") },
+    m_serverPublicKeyFilenameTextbox{ new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY,
+                                      NonEmptyValidator{ &m_serverPublicKeyFilename, "Invalid public key file", "Please select the bank's public key file." })},
+    m_serverPublicKeyFilenameButton{ new wxButton(this, LOGIN_BrowseServerPublicKeyFile, "Browse...") },
     m_loginButton{ new wxButton(this, LOGIN_LogIn , "Log in") },
     m_cancelButton{ new wxButton(this, LOGIN_Cancel, "Cancel") }
 {
-    m_userAccountNumberTextbox->SetHint("0000 0000 0000");
+    m_clientAccountNumberTextbox->SetHint("0000 0000 0000");
 
-    wxBoxSizer* userPrivateKeyFilenameSizer = new wxBoxSizer(wxHORIZONTAL);
-    userPrivateKeyFilenameSizer->Add(m_userPrivateKeyFilenameTextbox, wxSizerFlags(1));
-    userPrivateKeyFilenameSizer->AddSpacer(10);
-    userPrivateKeyFilenameSizer->Add(m_userPrivateKeyFilenameButton);
+    wxBoxSizer* clientPrivateKeyFilenameSizer = new wxBoxSizer(wxHORIZONTAL);
+    clientPrivateKeyFilenameSizer->Add(m_clientPrivateKeyFilenameTextbox, wxSizerFlags(1));
+    clientPrivateKeyFilenameSizer->AddSpacer(10);
+    clientPrivateKeyFilenameSizer->Add(m_clientPrivateKeyFilenameButton);
 
-    wxBoxSizer* bankPublicKeyFilenameSizer = new wxBoxSizer(wxHORIZONTAL);
-    bankPublicKeyFilenameSizer->Add(m_bankPublicKeyFilenameTextbox, wxSizerFlags(1));
-    bankPublicKeyFilenameSizer->AddSpacer(10);
-    bankPublicKeyFilenameSizer->Add(m_bankPublicKeyFilenameButton);
+    wxBoxSizer* serverPublicKeyFilenameSizer = new wxBoxSizer(wxHORIZONTAL);
+    serverPublicKeyFilenameSizer->Add(m_serverPublicKeyFilenameTextbox, wxSizerFlags(1));
+    serverPublicKeyFilenameSizer->AddSpacer(10);
+    serverPublicKeyFilenameSizer->Add(m_serverPublicKeyFilenameButton);
 
     wxBoxSizer* buttonInnerSizer = new wxBoxSizer(wxHORIZONTAL);
     buttonInnerSizer->Add(m_loginButton);
@@ -73,25 +75,25 @@ LoginDialog::LoginDialog(wxFrame* mainFrame) :
     buttonSizer->Add(buttonInnerSizer, wxSizerFlags().Right());
     
     wxBoxSizer* loginInnerSizer = new wxBoxSizer(wxVERTICAL);
-    loginInnerSizer->Add(m_userAccountNumberLabel);
-    loginInnerSizer->Add(m_userAccountNumberTextbox, wxSizerFlags().Expand());
+    loginInnerSizer->Add(m_clientAccountNumberLabel);
+    loginInnerSizer->Add(m_clientAccountNumberTextbox, wxSizerFlags().Expand());
     loginInnerSizer->AddSpacer(10);
-    loginInnerSizer->Add(m_userPasswordLabel);
-    loginInnerSizer->Add(m_userPasswordTextbox, wxSizerFlags().Expand());
+    loginInnerSizer->Add(m_clientPasswordLabel);
+    loginInnerSizer->Add(m_clientPasswordTextbox, wxSizerFlags().Expand());
     loginInnerSizer->AddSpacer(10);
-    loginInnerSizer->Add(m_userPrivateKeyFilenameLabel);
-    loginInnerSizer->Add(userPrivateKeyFilenameSizer, wxSizerFlags().Expand());
+    loginInnerSizer->Add(m_clientPrivateKeyFilenameLabel);
+    loginInnerSizer->Add(clientPrivateKeyFilenameSizer, wxSizerFlags().Expand());
     loginInnerSizer->AddSpacer(15);
     loginInnerSizer->Add(new wxStaticLine(this), wxSizerFlags().Expand());
     loginInnerSizer->AddSpacer(10);
-    loginInnerSizer->Add(m_bankIPAddressLabel);
-    loginInnerSizer->Add(m_bankIPAddressTextbox, wxSizerFlags().Expand());
+    loginInnerSizer->Add(m_serverIPAddressLabel);
+    loginInnerSizer->Add(m_serverIPAddressTextbox, wxSizerFlags().Expand());
     loginInnerSizer->AddSpacer(10);
-    loginInnerSizer->Add(m_bankPortLabel);
-    loginInnerSizer->Add(m_bankPortTextbox, wxSizerFlags().Expand());
+    loginInnerSizer->Add(m_serverPortLabel);
+    loginInnerSizer->Add(m_serverPortTextbox, wxSizerFlags().Expand());
     loginInnerSizer->AddSpacer(10);
-    loginInnerSizer->Add(m_bankPublicKeyFilenameLabel);
-    loginInnerSizer->Add(bankPublicKeyFilenameSizer, wxSizerFlags().Expand());
+    loginInnerSizer->Add(m_serverPublicKeyFilenameLabel);
+    loginInnerSizer->Add(serverPublicKeyFilenameSizer, wxSizerFlags().Expand());
     loginInnerSizer->AddSpacer(15);
     loginInnerSizer->Add(new wxStaticLine(this), wxSizerFlags().Expand());
     loginInnerSizer->AddSpacer(10);
@@ -104,25 +106,60 @@ LoginDialog::LoginDialog(wxFrame* mainFrame) :
     Fit();
 }
 
+GUI* LoginDialog::getGUI() const
+{
+    return m_gui;
+}
+
+std::string LoginDialog::getClientAccountNumber() const
+{
+    return m_clientAccountNumber.ToStdString();
+}
+
+std::string LoginDialog::getClientPassword() const
+{
+    return m_clientPassword.ToStdString();
+}
+
+std::string LoginDialog::getClientPrivateKeyFilename() const
+{
+    return m_clientPrivateKeyFilename.ToStdString();
+}
+
+std::string LoginDialog::getServerIPAddress() const
+{
+    return m_serverIPAddress.ToStdString();
+}
+
+std::string LoginDialog::getServerPort() const
+{
+    return m_serverPort.ToStdString();
+}
+
+std::string LoginDialog::getServerPublicKeyFilename() const
+{
+    return m_serverPublicKeyFilename.ToStdString();
+}
+
 void LoginDialog::handleClose(wxCloseEvent& WXUNUSED(event))
 {
     EndModal(wxID_CANCEL);
 }
 
-void LoginDialog::handleBrowseUserPrivateKeyFile(wxCommandEvent& WXUNUSED(event))
+void LoginDialog::handleBrowseClientPrivateKeyFile(wxCommandEvent& WXUNUSED(event))
 {
-    wxFileDialog fileDialog{ this, "Select Private Key File" , wxStandardPaths::Get().GetAppDocumentsDir(), wxEmptyString, "*.pem" };
+    wxFileDialog fileDialog{ this, "Select Your Private Key File" , wxStandardPaths::Get().GetAppDocumentsDir(), wxEmptyString, "*.pem" };
     fileDialog.ShowModal();
-    m_userPrivateKeyFilename = fileDialog.GetPath();
-    m_userPrivateKeyFilenameTextbox->ChangeValue(fileDialog.GetFilename());
+    m_clientPrivateKeyFilename = fileDialog.GetPath();
+    m_clientPrivateKeyFilenameTextbox->ChangeValue(fileDialog.GetFilename());
 }
 
-void LoginDialog::handleBrowseBankPublicKeyFile(wxCommandEvent& WXUNUSED(event))
+void LoginDialog::handleBrowseServerPublicKeyFile(wxCommandEvent& WXUNUSED(event))
 {
-    wxFileDialog fileDialog{ this, "Select bank Public Key File" , wxStandardPaths::Get().GetAppDocumentsDir(), wxEmptyString, "*.pem" };
+    wxFileDialog fileDialog{ this, "Select Bank Public Key File" , wxStandardPaths::Get().GetAppDocumentsDir(), wxEmptyString, "*.pem" };
     fileDialog.ShowModal();
-    m_bankPublicKeyFilename = fileDialog.GetPath();
-    m_bankPublicKeyFilenameTextbox->ChangeValue(fileDialog.GetFilename());
+    m_serverPublicKeyFilename = fileDialog.GetPath();
+    m_serverPublicKeyFilenameTextbox->ChangeValue(fileDialog.GetFilename());
 }
 
 void LoginDialog::handleLogIn(wxCommandEvent& WXUNUSED(event))
@@ -144,37 +181,7 @@ void LoginDialog::handleCancel(wxCommandEvent& WXUNUSED(event))
     Close();
 }
 
-wxString LoginDialog::getUserAccountNumber() const
-{
-    return m_userAccountNumber;
-}
-
-wxString LoginDialog::getUserPassword() const
-{
-    return m_userPassword;
-}
-
-wxString LoginDialog::getUserPrivateKeyFilename() const
-{
-    return m_userPrivateKeyFilename;
-}
-
-wxString LoginDialog::getBankIPAddress() const
-{
-    return m_bankIPAddress;
-}
-
-wxString LoginDialog::getBankPort() const
-{
-    return m_bankPort;
-}
-
-wxString LoginDialog::getBankPublicKeyFilename() const
-{
-    return m_bankPublicKeyFilename;
-}
-
-LoginDialog::UserAccountNumberValidator::UserAccountNumberValidator(wxString* value) :
+LoginDialog::ClientAccountNumberValidator::ClientAccountNumberValidator(wxString* value) :
     wxTextValidator{ wxFILTER_INCLUDE_CHAR_LIST, value },
     m_errorCaption{ "Please enter your 12 digits account number. Spaces are ignored." },
     m_errorMessage{ "Invalid account number" }
@@ -182,12 +189,12 @@ LoginDialog::UserAccountNumberValidator::UserAccountNumberValidator(wxString* va
     SetCharIncludes("0123456789 ");
 }
 
-wxObject* LoginDialog::UserAccountNumberValidator::Clone() const
+wxObject* LoginDialog::ClientAccountNumberValidator::Clone() const
 {
-    return new UserAccountNumberValidator(*this);
+    return new ClientAccountNumberValidator(*this);
 }
 
-bool LoginDialog::UserAccountNumberValidator::Validate(wxWindow* parent)
+bool LoginDialog::ClientAccountNumberValidator::Validate(wxWindow* parent)
 {
     m_stringValue->erase(std::remove_if(m_stringValue->begin(), m_stringValue->end(), [](char c) { return c == ' '; }), m_stringValue->end());
     if (m_stringValue->length() == 12)

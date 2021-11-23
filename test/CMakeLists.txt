@@ -1,11 +1,13 @@
 ﻿add_executable(
     Test
     main.cpp 
-    crypto/test_cipher.cpp
     crypto/test_conversions.cpp
-    crypto/test_functions.cpp 
-	crypto/test_keyderivationfunction.cpp
-	crypto/test_keypair.cpp)
+    crypto/test_decrypter.cpp
+    crypto/test_encrypter.cpp
+    crypto/test_ephemeralkeypair.cpp
+    crypto/test_functions.cpp
+	crypto/test_identitykeypair.cpp 
+	crypto/test_keyderivationfunction.cpp)
 
 set_target_properties(
     Test PROPERTIES
@@ -31,7 +33,7 @@ target_include_directories(
 add_custom_command(
     TARGET Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/data/libcrypto-1_1-x64.dll"
+        "${CMAKE_SOURCE_DIR}/data/libcrypto-3-x64.dll"
         $<TARGET_FILE_DIR:Test>)
 
 add_test(NAME MyTest COMMAND Test)

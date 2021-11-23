@@ -5,62 +5,68 @@
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
+#include <string>
 
 namespace jm {
 namespace clientapp {
 
+class GUI;
+
 class LoginDialog : public wxDialog
 {
 public:
-    LoginDialog(wxFrame* mainFrame);
+    LoginDialog(GUI* gui);
 
-    wxString getUserAccountNumber() const;
-    wxString getUserPassword() const;
-    wxString getUserPrivateKeyFilename() const;
-    wxString getBankIPAddress() const;
-    wxString getBankPort() const;
-    wxString getBankPublicKeyFilename() const;
+    GUI* getGUI() const;
+    std::string getClientAccountNumber() const;
+    std::string getClientPassword() const;
+    std::string getClientPrivateKeyFilename() const;
+    std::string getServerIPAddress() const;
+    std::string getServerPort() const;
+    std::string getServerPublicKeyFilename() const;
 
 private:
     void handleClose(wxCloseEvent& event);
-    void handleBrowseUserPrivateKeyFile(wxCommandEvent& event);
-    void handleBrowseBankPublicKeyFile(wxCommandEvent& event);
+    void handleBrowseClientPrivateKeyFile(wxCommandEvent& event);
+    void handleBrowseServerPublicKeyFile(wxCommandEvent& event);
     void handleLogIn(wxCommandEvent& event);
     void handleCancel(wxCommandEvent& event);
     
-    wxString      m_userAccountNumber;
-    wxStaticText* m_userAccountNumberLabel;
-    wxTextCtrl*   m_userAccountNumberTextbox;       // must come after m_userAccountNumber for validator
+    GUI*          m_gui;
 
-    wxString      m_userPassword;
-    wxStaticText* m_userPasswordLabel;
-    wxTextCtrl*   m_userPasswordTextbox;
+    wxString      m_clientAccountNumber;
+    wxStaticText* m_clientAccountNumberLabel;
+    wxTextCtrl*   m_clientAccountNumberTextbox;       // must come after m_clientAccountNumber for validator
 
-    wxString      m_userPrivateKeyFilename;
-    wxStaticText* m_userPrivateKeyFilenameLabel;
-    wxTextCtrl*   m_userPrivateKeyFilenameTextbox;  // must come after m_userPrivateKeyFilename for validator
-    wxButton*     m_userPrivateKeyFilenameButton;
+    wxString      m_clientPassword;
+    wxStaticText* m_clientPasswordLabel;
+    wxTextCtrl*   m_clientPasswordTextbox;
+
+    wxString      m_clientPrivateKeyFilename;
+    wxStaticText* m_clientPrivateKeyFilenameLabel;
+    wxTextCtrl*   m_clientPrivateKeyFilenameTextbox;  // must come after m_clientPrivateKeyFilename for validator
+    wxButton*     m_clientPrivateKeyFilenameButton;
     
-    wxString      m_bankIPAddress;
-    wxStaticText* m_bankIPAddressLabel;
-    wxTextCtrl*   m_bankIPAddressTextbox;           // must come after m_bankIPAddress for validator
+    wxString      m_serverIPAddress;
+    wxStaticText* m_serverIPAddressLabel;
+    wxTextCtrl*   m_serverIPAddressTextbox;           // must come after m_serverIPAddress for validator
 
-    wxString      m_bankPort;
-    wxStaticText* m_bankPortLabel;
-    wxTextCtrl*   m_bankPortTextbox;                // must come after m_bankPort for validator
+    wxString      m_serverPort;
+    wxStaticText* m_serverPortLabel;
+    wxTextCtrl*   m_serverPortTextbox;                // must come after m_serverPort for validator
 
-    wxString      m_bankPublicKeyFilename;
-    wxStaticText* m_bankPublicKeyFilenameLabel;
-    wxTextCtrl*   m_bankPublicKeyFilenameTextbox;   // must come after m_bankPublicKeyFilename for validator
-    wxButton*     m_bankPublicKeyFilenameButton;
+    wxString      m_serverPublicKeyFilename;
+    wxStaticText* m_serverPublicKeyFilenameLabel;
+    wxTextCtrl*   m_serverPublicKeyFilenameTextbox;   // must come after m_serverPublicKeyFilename for validator
+    wxButton*     m_serverPublicKeyFilenameButton;
 
     wxButton*     m_loginButton;
     wxButton*     m_cancelButton;
 
-    class UserAccountNumberValidator : public wxTextValidator
+    class ClientAccountNumberValidator : public wxTextValidator
     {
     public:
-        UserAccountNumberValidator(wxString* value);
+        ClientAccountNumberValidator(wxString* value);
 
         virtual wxObject* Clone() const wxOVERRIDE;
         virtual bool Validate(wxWindow* parent) wxOVERRIDE;
@@ -73,7 +79,7 @@ private:
     class NonEmptyValidator : public wxTextValidator
     {
     public:
-        NonEmptyValidator(wxString* value,
+        NonEmptyValidator(wxString*       value,
                           wxString const& errorCaption,
                           wxString const& errorMessage);
 
