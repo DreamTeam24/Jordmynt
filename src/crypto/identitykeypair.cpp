@@ -12,6 +12,11 @@ Bytes::size_type IdentityKeyPair::getPublicIdentityKeySize()
     return s_keySize;
 }
 
+Bytes::size_type IdentityKeyPair::getSignatureSize()
+{
+    return s_signatureSize;
+}
+
 IdentityKeyPair::IdentityKeyPair() :
     m_keyPair{ nullptr },
     m_keyContext{ EVP_PKEY_CTX_new_id(s_id, nullptr) },
@@ -155,6 +160,31 @@ Bytes IdentityKeyPair::sign(Bytes const& message) const
         logger::THROW("OpenSSL: EVP_DigestSign failed");
 
     return signature;
+}
+
+bool IdentityKeyPair::isSignatureValid(Bytes const& message,
+                                       Bytes const& signature,
+                                       Bytes const& peerPublicIdentityKey)
+{
+    assert(signature.size() == s_signatureSize);
+    assert(peerPublicIdentityKey.size() == s_keySize);
+
+    logger::DEBUG("Verifying signature ...");
+
+    EVP_PKEY* peerIdentityKeyPair{ EVP_PKEY_new_raw_public_key(s_id, nullptr, &peerPublicIdentityKey[0], peerPublicIdentityKey.size()) };
+    if (peerIdentityKeyPair == nullptr)
+        logger::THROW("OpenSSL: EVP_PKEY_new_raw_public_key failed");
+
+    EVP_MD_CTX* peerHashContext{ EVP_MD_CTX_new() };
+
+    if (EVP_DigestVerifyInit(peerHashContext, nullptr, nullptr, nullptr, peerIdentityKeyPair) != 1)
+    {
+        EVP_MD_CTX_free(peerHashContext);   // prevent memory leak
+        EVP_PKEY_free(peerIdentityKeyPair); // prevent memory leak
+        logger::THROW("OpenSSL: EVP_DigestVerifyInit failed");
+    }
+
+    return (EVP_DigestVerify(peerHashContext, &signature[0], signature.size(), (message.empty() ? nullptr : &message[0]), message.size()) == 1);
 }
 
 } // namespace crypto

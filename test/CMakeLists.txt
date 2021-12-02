@@ -5,9 +5,9 @@
     crypto/test_decrypter.cpp
     crypto/test_encrypter.cpp
     crypto/test_ephemeralkeypair.cpp
-    crypto/test_functions.cpp
+    crypto/test_hash.cpp
 	crypto/test_identitykeypair.cpp 
-	crypto/test_keyderivationfunction.cpp)
+	crypto/test_keyderivationfunction.cpp )
 
 set_target_properties(
     Test PROPERTIES

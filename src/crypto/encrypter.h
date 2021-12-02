@@ -9,9 +9,6 @@ namespace crypto {
 
 using Bytes = std::vector<unsigned char>;
 
-// C++ wrapper class around OpenSSL functions involving EVP_CIPHER_CTX
-// to encrypt messages with a pseudo random key and initialization vector.
-
 class Encrypter
 {
 public:

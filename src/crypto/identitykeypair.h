@@ -14,6 +14,7 @@ class IdentityKeyPair
 {
 public:
     static Bytes::size_type getPublicIdentityKeySize();
+    static Bytes::size_type getSignatureSize();
     
     IdentityKeyPair();
     IdentityKeyPair(Bytes const& privateIdentityKey);
@@ -28,6 +29,9 @@ public:
 
     Bytes getPublicIdentityKey() const;
     Bytes sign(Bytes const& message) const;
+    bool isSignatureValid(Bytes const& message,
+                          Bytes const& signature,
+                          Bytes const& peerPublicIdentityKey);
 
 private:
     static constexpr int              s_id{ EVP_PKEY_ED25519 };

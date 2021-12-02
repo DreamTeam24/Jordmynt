@@ -58,7 +58,6 @@ BOOST_AUTO_TEST_CASE(IdentityKeyPair_sign)
     //------------------------------------------------------------//
 
     // Input
-    // Input
     std::string privateIdentityKey1Hex{ "9d61b19deffd5a60ba844af492ec2cc4"
                                         "4449c5697b326919703bac031cae7f60" };
     jm::crypto::Bytes privateIdentityKey1{ jm::crypto::convertHexStringToBytes(privateIdentityKey1Hex) };
@@ -89,6 +88,45 @@ BOOST_AUTO_TEST_CASE(IdentityKeyPair_sign)
     // Test
     BOOST_TEST(signature1Hex == correctSignature1Hex);
     BOOST_TEST(signature2Hex == correctSignature2Hex);
+}
+
+BOOST_AUTO_TEST_CASE(IdentityKeyPair_isSignatureValid)
+{
+    //------------------------------------------------------------//
+    //   Based on https://datatracker.ietf.org/doc/html/rfc8032   //
+    //------------------------------------------------------------//
+
+    // Input
+    std::string peerPublicIdentityKey1Hex{ "d75a980182b10ab7d54bfed3c964073a"
+                                           "0ee172f3daa62325af021a68f707511a" };
+    jm::crypto::Bytes peerPublicIdentityKey1{ jm::crypto::convertHexStringToBytes(peerPublicIdentityKey1Hex) };
+    jm::crypto::Bytes message1{};
+    std::string signature1Hex{ "e5564300c360ac729086e2cc806e828a"
+                               "84877f1eb8e5d974d873e06522490155"
+                               "5fb8821590a33bacc61e39701cf9b46b"
+                               "d25bf5f0595bbe24655141438e7a100b" };
+    jm::crypto::Bytes signature1{ jm::crypto::convertHexStringToBytes(signature1Hex) };
+    std::string peerPublicIdentityKey2Hex{ "3d4017c3e843895a92b70aa74d1b7ebc"
+                                           "9c982ccf2ec4968cc0cd55f12af4660c" };
+    jm::crypto::Bytes peerPublicIdentityKey2{ jm::crypto::convertHexStringToBytes(peerPublicIdentityKey2Hex) };
+    jm::crypto::Bytes message2{ 0x72 };
+    std::string signature2Hex{ "92a009a9f0d4cab8720e820b5f642540"
+                               "a2b27b5416503f8fb3762223ebdb69da"
+                               "085ac1e43e15996e458f3613d0f11d8c"
+                               "387b2eaeb4302aeeb00d291612bb0c00" };
+    jm::crypto::Bytes signature2{ jm::crypto::convertHexStringToBytes(signature2Hex) };
+
+    // Compute output
+    std::string privateIdentityKeyHex{ "00000000000000000000000000000000"
+                                       "00000000000000000000000000000000" }; // does not matter
+    jm::crypto::Bytes privateIdentityKey{ jm::crypto::convertHexStringToBytes(privateIdentityKeyHex) };
+    jm::crypto::IdentityKeyPair identityKeyPair{ privateIdentityKey };
+    bool check1{ identityKeyPair.isSignatureValid(message1, signature1, peerPublicIdentityKey1) };
+    bool check2{ identityKeyPair.isSignatureValid(message2, signature2, peerPublicIdentityKey2) };
+
+    // Test
+    BOOST_TEST(check1 == true);
+    BOOST_TEST(check2 == true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -1,5 +1,5 @@
-#ifndef JM_CRYPTO_FUNCTIONS_H
-#define JM_CRYPTO_FUNCTIONS_H
+#ifndef JM_CRYPTO_HASH_H
+#define JM_CRYPTO_HASH_H
 
 #include <vector>
 
@@ -8,10 +8,9 @@ namespace crypto {
 
 using Bytes = std::vector<unsigned char>;
 
-Bytes generateRandomBytes(Bytes::size_type nBytes);
 Bytes hash(Bytes const& data);
 
 } // namespace crypto
 } // namespace jm
 
-#endif // JM_CRYPTO_FUNCTIONS_H
+#endif // JM_CRYPTO_HASH_H

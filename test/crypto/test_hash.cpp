@@ -1,4 +1,4 @@
-#include "crypto/functions.h"
+#include "crypto/hash.h"
 #include "crypto/conversions.h"
 #include <boost/test/unit_test.hpp>
 

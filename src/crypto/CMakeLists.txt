@@ -9,8 +9,10 @@
 	encrypter.cpp
 	ephemeralkeypair.h
 	ephemeralkeypair.cpp
-	functions.h
-	functions.cpp
+	generaterandombytes.h
+	generaterandombytes.cpp
+	hash.h
+	hash.cpp
 	identitykeypair.h
 	identitykeypair.cpp
 	keyderivationfunction.h
