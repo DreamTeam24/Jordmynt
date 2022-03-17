@@ -9,11 +9,10 @@
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <ostream>
-#include <stdexcept>
-
+// ----------------------------------------------------------------------------
 namespace jm {
 namespace logger {
-
+// ----------------------------------------------------------------------------
 enum class SeverityLevel
 {
     debug,
@@ -21,7 +20,7 @@ enum class SeverityLevel
     warning,
     error
 };
-
+// ----------------------------------------------------------------------------
 std::ostream& operator<< (std::ostream& stream, SeverityLevel level)
 {
     switch (level)
@@ -43,10 +42,10 @@ std::ostream& operator<< (std::ostream& stream, SeverityLevel level)
     }
     return stream;
 }
-
+// ----------------------------------------------------------------------------
 BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", SeverityLevel)
 BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "TimeStamp", boost::posix_time::ptime)
-
+// ----------------------------------------------------------------------------
 BOOST_LOG_INLINE_GLOBAL_LOGGER_INIT(Logger, boost::log::sources::severity_logger<SeverityLevel>)
 {
     boost::log::sources::severity_logger<SeverityLevel> globalLogger;
@@ -64,7 +63,7 @@ BOOST_LOG_INLINE_GLOBAL_LOGGER_INIT(Logger, boost::log::sources::severity_logger
     typedef boost::log::sinks::synchronous_sink< boost::log::sinks::text_ostream_backend > console_sink;
     boost::shared_ptr< console_sink > console = boost::log::add_console_log();
     console->set_formatter(formatter);
-    console->set_filter(severity >= SeverityLevel::info);
+    console->set_filter(severity >= SeverityLevel::debug);
     console->locked_backend()->auto_flush(true);
 
     // Add attributes
@@ -72,27 +71,26 @@ BOOST_LOG_INLINE_GLOBAL_LOGGER_INIT(Logger, boost::log::sources::severity_logger
 
     return globalLogger;
 }
-
-void DEBUG(std::string const& message)
+// ----------------------------------------------------------------------------
+void Debug(std::string const& message)
 {
     BOOST_LOG_SEV(logger::Logger::get(), logger::SeverityLevel::debug) << message;
 }
-
-void INFO(std::string const& message)
+// ----------------------------------------------------------------------------
+void Info(std::string const& message)
 {
     BOOST_LOG_SEV(logger::Logger::get(), logger::SeverityLevel::info) << message;
 }
-
-void WARNING(std::string const& message)
+// ----------------------------------------------------------------------------
+void Warning(std::string const& message)
 {
     BOOST_LOG_SEV(logger::Logger::get(), logger::SeverityLevel::warning) << message;
 }
-
-void THROW(std::string const& message)
+// ----------------------------------------------------------------------------
+void Error(std::string const& message)
 {
     BOOST_LOG_SEV(logger::Logger::get(), logger::SeverityLevel::error) << message;
-    throw std::runtime_error(message);
 }
-
+// ----------------------------------------------------------------------------
 } // namespace logger
 } // namespace jm

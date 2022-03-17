@@ -1,9 +1,8 @@
 ﻿add_library(
     Client
     STATIC
-    app.h
     client.h
-    client.cpp "app.cpp")
+    client.cpp )
 
 set_target_properties(
     Client PROPERTIES
@@ -12,8 +11,7 @@ set_target_properties(
 target_link_libraries(
     Client
     PUBLIC
-    Logger
-    Crypto)
+    Logger)
 
 target_include_directories(
     Client

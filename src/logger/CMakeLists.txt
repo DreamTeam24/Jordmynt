@@ -1,8 +1,8 @@
 ﻿add_library(
 	Logger
 	STATIC 
-	logger.h
-	logger.cpp)
+	"logger.h"
+	"logger.cpp")
 
 set_target_properties(
 	Logger PROPERTIES

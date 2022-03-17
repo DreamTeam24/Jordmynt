@@ -1,53 +1,71 @@
 #include "client.h"
-
 #include "logger/logger.h"
-
+#include <stdexcept>
+// ----------------------------------------------------------------------------
 namespace jm {
 namespace client {
-
+// ----------------------------------------------------------------------------
 Client::Client() :
     m_ioContext{},
     m_resolver{ m_ioContext },
-    m_socket{ m_ioContext },
-    m_buffer{}
+    m_socket{ m_ioContext }
 {
+    logger::DEBUG("Creating a Client ...");
 }
-
+// ----------------------------------------------------------------------------
 void Client::connect(std::string const& serverIPAddress,
                      std::string const& serverPort)
 {
-    logger::INFO("Connecting to the server ...");
-    
-    boost::asio::connect(m_socket,
-                         m_resolver.resolve(serverIPAddress, serverPort));
-}
+    logger::DEBUG("Connecting to the server ...");
 
+    boost::system::error_code error;
+    boost::asio::connect(m_socket,
+                         m_resolver.resolve(serverIPAddress, serverPort),
+                         error);
+
+    if (error)
+        throw std::runtime_error{ std::string("Boost.Asio error: \n")
+                                  + error.message() };
+}
+// ----------------------------------------------------------------------------
 void Client::disconnect()
 {
-    logger::INFO("Disconnecting from the server ...");
-    
-    m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+    logger::DEBUG("Disconnecting from the server ...");
+
+    m_socket.shutdown(boost::asio::socket_base::shutdown_both);
     m_socket.close();
 }
-
-Bytes Client::getResponse(Bytes const& requestToServer)
+// ----------------------------------------------------------------------------
+void Client::send(Bytes request)
 {
-    logger::INFO("Sending request to the server ...");
+    logger::DEBUG("Sending request to the server ...");
 
-    m_buffer = requestToServer;
-    m_buffer.push_back(s_delimiter);
+    boost::system::error_code error;
     boost::asio::write(m_socket,
-                       boost::asio::dynamic_buffer(m_buffer));
+                       boost::asio::buffer(request, request.size()),
+                       error);
 
-    logger::INFO("Receiving response from the server ...");
-
-    std::size_t responseSize{
-        boost::asio::read_until(m_socket,
-                                boost::asio::dynamic_buffer(m_buffer),
-                                s_delimiter)
-        - 1 };
-    return Bytes{ m_buffer.begin(), m_buffer.begin() + responseSize };
+    if (error)
+        logger::THROW("Boost.Asio write failed\n" + error.message());
 }
+// ----------------------------------------------------------------------------
+Bytes Client::receive(Bytes::size_type nBytes)
+{
+    logger::DEBUG("Receiving response from the server ...");
 
+    Bytes response(nBytes);
+    boost::system::error_code error;
+    boost::asio::read(m_socket,
+                      boost::asio::buffer(response, response.size()),
+                      error);
+    
+    if (error == boost::asio::error::eof)
+        disconnect();
+    else if (error)
+        logger::THROW("Boost.Asio read failed\n" + error.message());
+
+    return response;
+}
+// ----------------------------------------------------------------------------
 } // namespace client
 } // namespace jm

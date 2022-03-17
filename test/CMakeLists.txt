@@ -1,13 +1,12 @@
 ﻿add_executable(
     Test
-    main.cpp 
-    crypto/test_conversions.cpp
-    crypto/test_decrypter.cpp
-    crypto/test_encrypter.cpp
-    crypto/test_ephemeralkeypair.cpp
-    crypto/test_hash.cpp
-	crypto/test_identitykeypair.cpp 
-	crypto/test_keyderivationfunction.cpp )
+    "main.cpp"
+    "common/test_conversions.cpp"
+    "crypto/test_cipher.cpp"
+    "crypto/test_ephemeralkey.cpp"
+    "crypto/test_hashfunction.cpp"
+	"crypto/test_identitykey.cpp"
+	"crypto/test_keyderivationfunction.cpp")
 
 set_target_properties(
     Test PROPERTIES
@@ -21,6 +20,7 @@ target_link_directories(
 target_link_libraries(
     Test
     PRIVATE
+    Common
     Crypto
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 

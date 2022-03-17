@@ -1,32 +1,34 @@
-#ifndef JM_CLIENT_CLIENT_H
-#define JM_CLIENT_CLIENT_H
+#ifndef JM_SECURECLIENT_SECURECLIENT_H
+#define JM_SECURECLIENT_SECURECLIENT_H
 // ----------------------------------------------------------------------------
 #include "common/byte.h"
-#include <boost/asio.hpp>
+#include "client/client.h"
+#include "crypto/protocol.h"
 #include <string>
 // ----------------------------------------------------------------------------
 namespace jm {
-namespace client {
+namespace secureclient {
 // ----------------------------------------------------------------------------
-class Client
+class SecureClient
 {
 public:
-    Client();
+    SecureClient();
 
     void connect(std::string const& serverIPAddress,
-                 std::string const& serverPort);
+                 std::string const& serverPort,
+                 std::string const& clientPrivateIdentityKeyFilename,
+                 Bytes const&       serverPublicIdentityKey);
     void disconnect();
 
-    void send(Bytes request);
-    Bytes receive(Bytes::size_type nBytes);
+    void send(Bytes const& request);
+    Bytes receive();
 
 private:
-    boost::asio::io_context        m_ioContext; // m_resolver and m_socket depend on m_ioContext
-    boost::asio::ip::tcp::resolver m_resolver;
-    boost::asio::ip::tcp::socket   m_socket;
+    client::Client   m_client;
+    crypto::Protocol m_protocol;
 };
 // ----------------------------------------------------------------------------
-} // namespace client
+} // namespace secureclient
 } // namespace jm
 // ----------------------------------------------------------------------------
-#endif // JM_CLIENT_CLIENT_H
+#endif // JM_SECURECLIENT_SECURECLIENT_H

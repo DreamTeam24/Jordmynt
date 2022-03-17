@@ -1,47 +1,52 @@
 #ifndef JM_CRYPTO_KEYDERIVATIONFUNCTION_H
 #define JM_CRYPTO_KEYDERIVATIONFUNCTION_H
-
-#include <openssl/evp.h>
-#include <vector>
-
+// ----------------------------------------------------------------------------
+#include "pointer.h"
+#include "common/byte.h"
+#include <string>
+// ----------------------------------------------------------------------------
+typedef struct evp_kdf_st     EVP_KDF;
+typedef struct evp_kdf_ctx_st EVP_KDF_CTX;
+// ----------------------------------------------------------------------------
 namespace jm {
 namespace crypto {
-
-using Bytes = std::vector<unsigned char>;
-
-// C++ wrapper class around OpenSSL functions involving EVP_PKEY_CTX
-// to derive pseudo random keys from a shared secret.
-
+// ----------------------------------------------------------------------------
+// A function to derive pseudo-random keys from another key.
 class KeyDerivationFunction
 {
 public:
-    static Bytes::size_type getPseudoRandomKeySize(); 
-    
     KeyDerivationFunction();
     ~KeyDerivationFunction();
 
-    KeyDerivationFunction(KeyDerivationFunction const& keyDerivationFunction) = delete;             // not copyable
-    KeyDerivationFunction& operator=(KeyDerivationFunction const& keyDerivationFunction) = delete;  // not copy-assignable
+    KeyDerivationFunction(KeyDerivationFunction const& keyDerivationFunction) = delete;
+    KeyDerivationFunction& operator=(KeyDerivationFunction const& keyDerivationFunction) = delete;
 
-    KeyDerivationFunction(KeyDerivationFunction&& keyDerivationFunction) noexcept;                  // movable
-    KeyDerivationFunction& operator=(KeyDerivationFunction&& keyDerivationFunction) noexcept;       // move-assignable
+    KeyDerivationFunction(KeyDerivationFunction&& keyDerivationFunction) noexcept;
+    KeyDerivationFunction& operator=(KeyDerivationFunction&& keyDerivationFunction) noexcept;
 
-    Bytes extractPseudoRandomKey(Bytes inputKeyingMaterial,         // no const& because of OpenSSL
-                                 Bytes salt) const;                 // no const& because of OpenSSL
-    Bytes expandPseudoRandomKey(Bytes            pseudoRandomKey,   // no const& because of OpenSSL
-                                Bytes const&     label,
-                                Bytes const&     info,
-                                Bytes::size_type expandedKeySize) const;
+    static BytesSize getExtractedKeySize();
+    BytesSpan extractKey(BytesView  key,
+                         BytesView  salt,
+                         BytesSpan& buffer) const;
+    
+    BytesSpan expandKey(BytesView  key,
+                        BytesView  info,
+                        BytesSize  expandedKeySize,
+                        BytesSpan& buffer) const;
 
 private:
-    static inline EVP_MD const* const s_hashFunction{ EVP_sha256() }; 
-    static constexpr int              s_id{ EVP_PKEY_HKDF };
-    static constexpr Bytes::size_type s_pseudoRandomKeySize{ 32 };
+    static std::string const s_hashAlgorithm;
+    static std::string const s_macAlgorithm;
+    static int const         s_extractMode;
+    static int const         s_expandMode;
+    static BytesSize const   s_extractedKeySize;
 
-    EVP_PKEY_CTX* m_keyContext;
+    Pointer<EVP_KDF>     m_function;
+    Pointer<EVP_KDF_CTX> m_functionContext;     // depends on m_function
+    
 };
-
+// ----------------------------------------------------------------------------
 } // namespace crypto
 } // namespace jm
-
+// ----------------------------------------------------------------------------
 #endif // JM_CRYPTO_KEYDERIVATIONFUNCTION_H

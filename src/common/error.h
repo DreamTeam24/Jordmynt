@@ -1,15 +1,17 @@
-#ifndef JM_CRYPTO_GENERATERANDOMBYTES_H
-#define JM_CRYPTO_GENERATERANDOMBYTES_H
+#ifndef JM_COMMON_ERROR_H
+#define JM_COMMON_ERROR_H
 // ----------------------------------------------------------------------------
-#include "common/byte.h"
+#include <stdexcept>
+#include <string>
 // ----------------------------------------------------------------------------
 namespace jm {
-namespace crypto {
 // ----------------------------------------------------------------------------
-BytesSpan generateRandomBytes(BytesSize  randomBytesSize,
-                              BytesSpan& buffer);
+class Error : public std::runtime_error
+{
+public:
+    Error(std::string const& message);
+};
 // ----------------------------------------------------------------------------
-} // namespace crypto
 } // namespace jm
 // ----------------------------------------------------------------------------
-#endif // JM_CRYPTO_GENERATERANDOMBYTES_H
+#endif // JM_CRYPTO_ERROR_H

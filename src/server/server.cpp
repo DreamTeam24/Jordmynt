@@ -1,17 +1,17 @@
 #include "server.h"
 #include "crypto/conversions.h"
 #include "logger/logger.h"
-
+// ----------------------------------------------------------------------------
 namespace jm {
 namespace server {
-
+// ----------------------------------------------------------------------------
 Server::Server(boost::asio::io_context&   ioContext,
                boost::asio::ip::port_type port) :
     m_ioContext{ ioContext },
     m_acceptor{ ioContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port) }
 {
 }
-
+// ----------------------------------------------------------------------------
 void Server::accept()
 {
     logger::INFO("Accepting a client ...");
@@ -29,14 +29,14 @@ void Server::accept()
         }
     );
 }
-
+// ----------------------------------------------------------------------------
 Server::Connection::Connection(boost::asio::ip::tcp::socket socket) :
     m_socket{ std::move(socket) },
     m_buffer{}
 {
     logger::INFO("Connection established");
 }
-
+// ----------------------------------------------------------------------------
 void Server::Connection::receiveHeader()
 {
     logger::INFO("Receiving header from the client ...");
@@ -62,8 +62,7 @@ void Server::Connection::receiveHeader()
         }
     );
 }
-
-
+// ----------------------------------------------------------------------------
 void Server::Connection::receiveMessage(crypto::Bytes::size_type messageSize)
 {
     logger::INFO("Receiving message from the client ...");
@@ -86,7 +85,7 @@ void Server::Connection::receiveMessage(crypto::Bytes::size_type messageSize)
         }
     );
 }
-
+// ----------------------------------------------------------------------------
 void Server::Connection::sendResponse()
 {
     logger::INFO("Sending response to the client ...");
@@ -116,6 +115,6 @@ void Server::Connection::sendResponse()
         }
     );
 }
-
+// ----------------------------------------------------------------------------
 } // namespace server
 } // namespace jm

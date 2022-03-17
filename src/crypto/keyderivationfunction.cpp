@@ -1,110 +1,129 @@
 #include "keyderivationfunction.h"
-
+#include "opensslerror.h"
 #include "logger/logger.h"
+#include <openssl/core_names.h>
+#include <openssl/evp.h>
 #include <openssl/kdf.h>
-#include <cassert>
-#include <limits>
+#include <algorithm>
+#include <array>
 #include <utility>
-
+// ----------------------------------------------------------------------------
 namespace jm {
 namespace crypto {
-
-Bytes::size_type KeyDerivationFunction::getPseudoRandomKeySize()
-{
-    return s_pseudoRandomKeySize;
-}
-
+// ----------------------------------------------------------------------------
+std::string const KeyDerivationFunction::s_hashAlgorithm{ SN_sha256 };
+// ----------------------------------------------------------------------------
+std::string const KeyDerivationFunction::s_macAlgorithm{ SN_hkdf };
+// ----------------------------------------------------------------------------
+int const         KeyDerivationFunction::s_extractMode{ EVP_KDF_HKDF_MODE_EXTRACT_ONLY };
+// ----------------------------------------------------------------------------
+int const         KeyDerivationFunction::s_expandMode{ EVP_KDF_HKDF_MODE_EXPAND_ONLY };
+// ----------------------------------------------------------------------------
+BytesSize const   KeyDerivationFunction::s_extractedKeySize{ 32 };
+// ----------------------------------------------------------------------------
 KeyDerivationFunction::KeyDerivationFunction() :
-    m_keyContext{ nullptr }
+    m_function{ EVP_KDF_fetch(nullptr,
+                              s_macAlgorithm.data(),
+                              nullptr) },
+    m_functionContext{ EVP_KDF_CTX_new(m_function.get()) }
 {
-    logger::DEBUG("Creating a KeyDerivationFunction ...");
+    logger::Debug("Creating a KeyDerivationFunction ...");
 
-    m_keyContext = EVP_PKEY_CTX_new_id(s_id, nullptr);
-    if (m_keyContext == nullptr)
-        logger::THROW("OpenSSL: EVP_PKEY_CTX_new_id failed");
+    if (!m_function)
+        throw OpenSSLError{};
 
-    if (EVP_PKEY_derive_init(m_keyContext) != 1)
-    {
-        EVP_PKEY_CTX_free(m_keyContext);    // prevent memory leak on throw
-        logger::THROW("OpenSSL: EVP_PKEY_derive_init failed");
-    }
-
-    if (EVP_PKEY_CTX_set_hkdf_md(m_keyContext, s_hashFunction) != 1)
-    {
-        EVP_PKEY_CTX_free(m_keyContext);    // prevent memory leak on throw
-        logger::THROW("OpenSSL: EVP_PKEY_CTX_set_hkdf_md failed");
-    }
+    if (!m_functionContext)
+        throw OpenSSLError{};
 }
-
+// ----------------------------------------------------------------------------
 KeyDerivationFunction::~KeyDerivationFunction()
 {
-    EVP_PKEY_CTX_free(m_keyContext);
 }
-
+// ----------------------------------------------------------------------------
 KeyDerivationFunction::KeyDerivationFunction(KeyDerivationFunction&& keyDerivationFunction) noexcept :
-    m_keyContext{ std::exchange(keyDerivationFunction.m_keyContext, nullptr) }
+    m_function{ std::move(keyDerivationFunction.m_function) },
+    m_functionContext{ std::move(keyDerivationFunction.m_functionContext) }
 {
 }
-
+// ----------------------------------------------------------------------------
 KeyDerivationFunction& KeyDerivationFunction::operator=(KeyDerivationFunction&& keyDerivationFunction) noexcept
 {
-    m_keyContext = std::exchange(keyDerivationFunction.m_keyContext, nullptr);
+    m_function = std::move(keyDerivationFunction.m_function);
+    m_functionContext = std::move(keyDerivationFunction.m_functionContext);
     return *this;
 }
-
-Bytes KeyDerivationFunction::extractPseudoRandomKey(Bytes inputKeyingMaterial,
-                                                    Bytes salt) const
+// ----------------------------------------------------------------------------
+BytesSize KeyDerivationFunction::getExtractedKeySize()
 {
-    assert(inputKeyingMaterial.size() <= std::numeric_limits<int>::max());
-    assert(salt.size() <= std::numeric_limits<int>::max());
-
-    logger::DEBUG("Deriving a pseudo-random key ..."); 
-    
-    if (EVP_PKEY_CTX_hkdf_mode(m_keyContext, EVP_PKEY_HKDEF_MODE_EXTRACT_ONLY) != 1)
-        logger::THROW("OpenSSL: EVP_PKEY_CTX_hkdf_mode failed");
-    
-    if (EVP_PKEY_CTX_set1_hkdf_key(m_keyContext, &inputKeyingMaterial[0], static_cast<int>(inputKeyingMaterial.size())) != 1)
-        logger::THROW("OpenSSL: EVP_PKEY_CTX_set1_hkdf_key failed");
-    
-    if (EVP_PKEY_CTX_set1_hkdf_salt(m_keyContext, (salt.empty() ? nullptr : &salt[0]), static_cast<int>(salt.size())) != 1)
-        logger::THROW("OpenSSL: EVP_PKEY_CTX_set1_hkdf_salt failed");
-    
-    Bytes::size_type pseudoRandomKeySize{ s_pseudoRandomKeySize };  // OpenSSL needs this
-    Bytes pseudoRandomKey(pseudoRandomKeySize);
-    if (EVP_PKEY_derive(m_keyContext, &pseudoRandomKey[0], &pseudoRandomKeySize) != 1)
-        logger::THROW("OpenSSL: EVP_PKEY_derive failed");
-
-    return pseudoRandomKey;
+    return s_extractedKeySize;
 }
-
-Bytes KeyDerivationFunction::expandPseudoRandomKey(Bytes            pseudoRandomKey,
-                                                   Bytes const&     label,
-                                                   Bytes const&     info,
-                                                   Bytes::size_type expandedKeySize) const
+// ----------------------------------------------------------------------------
+BytesSpan KeyDerivationFunction::extractKey(BytesView  key,
+                                            BytesView  salt,
+                                            BytesSpan& buffer) const
 {
-    assert(pseudoRandomKey.size() == s_pseudoRandomKeySize); 
-    assert(label.size() + info.size() <= std::numeric_limits<int>::max());
+    logger::Debug("Extracting a pseudo-random key ...");
 
-    logger::DEBUG("Expanding a pseudo-random key ...");
+    // https://github.com/openssl/openssl/blob/master/demos/kdf/pbkdf2.c
+    std::array<OSSL_PARAM, 5> parameters
+    {
+        OSSL_PARAM_construct_int(OSSL_KDF_PARAM_MODE,
+                                 const_cast<int*>(&s_extractMode)),   // ugly...
+        OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST,
+                                         const_cast<char*>(s_hashAlgorithm.data()),   // ugly...
+                                         s_hashAlgorithm.size()),
+        OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_KEY,
+                                          const_cast<Byte*>(key.data()),   // ugly...
+                                          key.size()),
+        OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SALT,
+                                          const_cast<Byte*>(salt.data()),   // ugly...
+                                          salt.size()),
+        OSSL_PARAM_construct_end()
+    };
+
+    BytesSpan extractedKey{ defineVariable(buffer, s_extractedKeySize) };
+    if (EVP_KDF_derive(m_functionContext.get(),
+                       extractedKey.data(),
+                       s_extractedKeySize,
+                       parameters.data()) != 1)
+        throw OpenSSLError{};
+
+    return extractedKey;
+}
+// ----------------------------------------------------------------------------
+BytesSpan KeyDerivationFunction::expandKey(BytesView  key,
+                                           BytesView  info,
+                                           BytesSize  expandedKeySize,
+                                           BytesSpan& buffer) const
+{
+    logger::Debug("Expanding a pseudo-random key ...");
     
-    if (EVP_PKEY_CTX_hkdf_mode(m_keyContext, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY) != 1)
-        logger::THROW("OpenSSL: EVP_PKEY_CTX_hkdf_mode failed");
+    // https://github.com/openssl/openssl/blob/master/demos/kdf/pbkdf2.c
+    std::array<OSSL_PARAM, 5> parameters
+    {
+        OSSL_PARAM_construct_int(OSSL_KDF_PARAM_MODE,
+                                 const_cast<int*>(&s_expandMode)),   // ugly...
+        OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST,
+                                         const_cast<char*>(s_hashAlgorithm.data()),    // ugly...
+                                         s_hashAlgorithm.size()),
+        OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_KEY,
+                                          const_cast<Byte*>(key.data()),       // ugly...
+                                          key.size()),
+        OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_INFO,
+                                          const_cast<Byte*>(info.data()),   // ugly...
+                                          info.size()),
+        OSSL_PARAM_construct_end()
+    };
     
-    if (EVP_PKEY_CTX_set1_hkdf_key(m_keyContext, &pseudoRandomKey[0], static_cast<int>(pseudoRandomKey.size())) != 1)
-        logger::THROW("OpenSSL: EVP_PKEY_CTX_set1_hkdf_key failed");
-    
-    Bytes labelledInfo(label.size() + info.size());
-    std::copy(info.begin(), info.end(),
-        std::copy(label.begin(), label.end(), labelledInfo.begin()));
-    if (EVP_PKEY_CTX_add1_hkdf_info(m_keyContext, &labelledInfo[0], static_cast<int>(labelledInfo.size())) != 1)
-        logger::THROW("OpenSSL: EVP_PKEY_CTX_add1_hkdf_info failed");
-    
-    Bytes expandedKey(expandedKeySize);
-    if (EVP_PKEY_derive(m_keyContext, &expandedKey[0], &expandedKeySize) != 1)
-        logger::THROW("OpenSSL: EVP_PKEY_derive failed");
+    BytesSpan expandedKey{ defineVariable(buffer, expandedKeySize) };
+    if (EVP_KDF_derive(m_functionContext.get(),
+                       expandedKey.data(),
+                       expandedKeySize,
+                       parameters.data()) != 1)
+        throw OpenSSLError{};
 
     return expandedKey;
 }
-
+// ----------------------------------------------------------------------------
 } // namespace crypto
 } // namespace jm

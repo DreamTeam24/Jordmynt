@@ -1,14 +1,14 @@
 #ifndef JM_SERVER_SERVER_H
 #define JM_SERVER_SERVER_H
-
-#include "crypto/bytes.h"
+// ----------------------------------------------------------------------------
+#include "common/byte.h"
 #include <boost/asio.hpp>
 #include <memory>
 #include <string>
-
+// ----------------------------------------------------------------------------
 namespace jm {
 namespace server {
-
+// ----------------------------------------------------------------------------
 class Server
 {
 public:
@@ -40,8 +40,8 @@ private:
         crypto::Bytes                m_buffer;
     };
 };
-
+// ----------------------------------------------------------------------------
 } // namespace server
 } // namespace jm
-
+// ----------------------------------------------------------------------------
 #endif // JM_SERVER_SERVER_H

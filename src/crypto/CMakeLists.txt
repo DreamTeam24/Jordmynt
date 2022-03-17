@@ -1,24 +1,26 @@
 ﻿add_library(
 	Crypto
 	STATIC
-	conversions.h
-	conversions.cpp
-	decrypter.h
-	decrypter.cpp
-	encrypter.h
-	encrypter.cpp
-	ephemeralkeypair.h
-	ephemeralkeypair.cpp
-	generaterandombytes.h
-	generaterandombytes.cpp
-	hash.h
-	hash.cpp
-	identitykeypair.h
-	identitykeypair.cpp
-	keyderivationfunction.h
-	keyderivationfunction.cpp
-	securer.h
-	securer.cpp)
+	"cipher.h"
+	"cipher.cpp"
+	"ephemeralkey.h"
+	"ephemeralkey.cpp"
+	"generaterandombytes.h"
+	"generaterandombytes.cpp"
+	"hashfunction.h"
+	"hashfunction.cpp"
+	"identitykey.h"
+	"identitykey.cpp"
+	"keyderivationfunction.h"
+	"keyderivationfunction.cpp"
+	"opensslerror.h"
+	"opensslerror.cpp"
+	"pointer.h"
+	"pointer.cpp")
+	#protocol.h
+	#protocol.cpp 
+	#"record.h"
+	#"record.cpp")
 
 set_target_properties(
 	Crypto PROPERTIES 
@@ -40,5 +42,4 @@ target_include_directories(
 	PRIVATE
 	"${CMAKE_SOURCE_DIR}/src"
     PUBLIC
-    ${OPENSSL_INCLUDE_DIR}
-    ${Boost_INCLUDE_DIRS})
+    ${OPENSSL_INCLUDE_DIR})

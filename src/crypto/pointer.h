@@ -1,15 +1,21 @@
-#ifndef JM_CRYPTO_GENERATERANDOMBYTES_H
-#define JM_CRYPTO_GENERATERANDOMBYTES_H
+#ifndef JM_CRYPTO_POINTER_H
+#define JM_CRYPTO_POINTER_H
 // ----------------------------------------------------------------------------
-#include "common/byte.h"
+#include <memory>
 // ----------------------------------------------------------------------------
 namespace jm {
 namespace crypto {
 // ----------------------------------------------------------------------------
-BytesSpan generateRandomBytes(BytesSize  randomBytesSize,
-                              BytesSpan& buffer);
+template<typename T>
+struct Deleter
+{
+    void operator()(T* t) const;
+};
+// ----------------------------------------------------------------------------
+template<typename T>
+using Pointer = std::unique_ptr<T, Deleter<T>>;
 // ----------------------------------------------------------------------------
 } // namespace crypto
 } // namespace jm
 // ----------------------------------------------------------------------------
-#endif // JM_CRYPTO_GENERATERANDOMBYTES_H
+#endif // JM_CRYPTO_POINTER_H

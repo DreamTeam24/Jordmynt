@@ -1,26 +1,23 @@
 #include "generaterandombytes.h"
-
+#include "opensslerror.h"
 #include "logger/logger.h"
 #include <openssl/rand.h>
-#include <cassert>
-#include <limits>
-
+// ----------------------------------------------------------------------------
 namespace jm {
 namespace crypto {
-
-Bytes generateRandomBytes(Bytes::size_type nBytes)
+// ----------------------------------------------------------------------------
+BytesSpan generateRandomBytes(BytesSize  randomBytesSize,
+                              BytesSpan& buffer)
 {
-    assert(nBytes <= std::numeric_limits<int>::max());
+    logger::Debug("Generating random bytes ...");
 
-    logger::DEBUG("Generating random bytes ...");
-    
-    Bytes randomBytes(nBytes);
-
-    if (RAND_bytes(&randomBytes[0], static_cast<int>(nBytes)) != 1)
-        logger::THROW("OpenSSL: RAND_bytes failed");
+    BytesSpan randomBytes{ defineVariable(buffer, randomBytesSize) };
+    if (RAND_bytes(randomBytes.data(),
+                   static_cast<int>(randomBytesSize)) != 1)
+        throw OpenSSLError{};
 
     return randomBytes;
 }
-
+// ----------------------------------------------------------------------------
 } // namespace crypto
 } // namespace jm
